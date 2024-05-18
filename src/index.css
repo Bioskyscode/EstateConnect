@@ -143,15 +143,15 @@ button {
   }
 }
 
-@media (min-width: 401px) and (max-width: 800px) {
+@media (min-width: 540px) and (max-height: 740px){
   .exploreContainer {
-    height: 100dvh;
+    height: 103dvh;
   }
 }
 
-@media (min-width: 200px) and (max-width: 400px) {
+@media (min-width: 1024px) and (max-height: 600px) {
   .exploreContainer {
-    height: 117dvh;
+    height: 150dvh;
   }
 }
 
