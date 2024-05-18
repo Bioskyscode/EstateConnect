@@ -242,7 +242,7 @@ function EditListing() {
                             onChange={onMutate}
                             maxLength='32'
                             minLength='10'
-                            required
+
                         />
 
                         <div className='formRooms flex'>
@@ -256,7 +256,7 @@ function EditListing() {
                                     onChange={onMutate}
                                     min='1'
                                     max='50'
-                                    required
+
                                 />
                             </div>
                             <div>
@@ -269,7 +269,7 @@ function EditListing() {
                                     onChange={onMutate}
                                     min='1'
                                     max='50'
-                                    required
+
                                 />
                             </div>
                         </div>
@@ -333,7 +333,7 @@ function EditListing() {
                             id='address'
                             value={address}
                             onChange={onMutate}
-                            required
+
                         />
 
                         {
@@ -346,7 +346,7 @@ function EditListing() {
                                         id='latitude'
                                         value={latitude}
                                         onChange={onMutate}
-                                        required
+
                                     />
                                 </div>
                                 <div>
@@ -357,7 +357,7 @@ function EditListing() {
                                         id='longitude'
                                         value={longitude}
                                         onChange={onMutate}
-                                        required
+
                                     />
                                 </div>
                             </div>
@@ -397,7 +397,7 @@ function EditListing() {
                                 onChange={onMutate}
                                 min='50'
                                 max='750000000'
-                                required
+
                             />
                             {type === 'rent' && <p className='formPriceText'>$ / Month</p>}
                         </div>

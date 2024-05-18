@@ -67,78 +67,88 @@ function CreateListing() {
     const onSubmit = async (e) => {
         e.preventDefault()
 
-        setLoading(true)
-        if (discountedPrice > regularPrice) {
-            setLoading(false)
-
-            return toast.error("Discounted price has to be lowered than regular price"), toast.clearWaitingQueue()
-        }
-        if (images.length > 6) {
-            setLoading(false)
-
-            return toast.error("Max of six images"), toast.clearWaitingQueue()
-        }
-
-        // Store images in firebase
-        const storeImg = async (image) => {
-            return new Promise((resolve, reject) => {
-                const storage = getStorage()
-                const fileName = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`
-                const storageRef = ref(storage, "images/" + fileName)
-
-                const uploadTask = uploadBytesResumable(storageRef, image)
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        console.log('Upload is ' + progress + '% done');
-                        switch (snapshot.state) {
-                            case 'paused':
-                                console.log('Upload is paused');
-                                break;
-                            case 'running':
-                                console.log('Upload is running');
-                                break;
-                            default:
-                                break
+        try {
+            setLoading(true)
+            if (discountedPrice > regularPrice) {
+                setLoading(false)
+    
+                return toast.error("Discounted price has to be lowered than regular price"), toast.clearWaitingQueue()
+            }
+            if (images.length > 6) {
+                setLoading(false)
+    
+                return toast.error("Max of six images"), toast.clearWaitingQueue()
+            }
+    
+            // Store images in firebase
+            const storeImg = async (image) => {
+                return new Promise((resolve, reject) => {
+                    const storage = getStorage()
+                    const fileName = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`
+                    const storageRef = ref(storage, "images/" + fileName)
+    
+                    const uploadTask = uploadBytesResumable(storageRef, image)
+    
+                    uploadTask.on('state_changed',
+                        (snapshot) => {
+                            // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            console.log('Upload is ' + progress + '% done');
+                            switch (snapshot.state) {
+                                case 'paused':
+                                    console.log('Upload is paused');
+                                    break;
+                                case 'running':
+                                    console.log('Upload is running');
+                                    break;
+                                default:
+                                    break
+                            }
+                        },
+                        (error) => {
+                            reject(error)
+                        },
+                        () => {
+                            // Upload completed successfully, now we can get the download URL
+                            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                                resolve(downloadURL);
+                            });
                         }
-                    },
-                    (error) => {
-                        reject(error)
-                    },
-                    () => {
-                        // Upload completed successfully, now we can get the download URL
-                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                            resolve(downloadURL);
-                        });
-                    }
-                );
+                    );
+                })
+            }
+    
+            const imageUrls = await Promise.all(
+                [...images].map(image => storeImg(image))
+    
+            ).catch(() => {
+                setLoading(false)
+                toast.error("Images not uploaded")
+                return
             })
-        }
-
-        const imageUrls = await Promise.all(
-            [...images].map(image => storeImg(image))
-
-        ).catch(() => {
+    
+            const formDataCopy = {
+                ...formData,
+                imageUrls,
+                timestamp: serverTimestamp()
+            }
+    
+            delete formDataCopy.images
+            !formDataCopy.offer && delete formDataCopy.discountedPrice
+    
+            const docRef = await addDoc(collection(db, "listings"), formDataCopy)
             setLoading(false)
-            toast.error("Images not uploaded")
-            return
-        })
+            toast.success("Listing saved")
+            navigate(`/category/${formDataCopy.type}/${docRef.id}`)
+            
+        } catch (error) {
+            toast.error("Firebase Daily Quota exceeded, please try again later to create a listing")
 
-        const formDataCopy = {
-            ...formData,
-            imageUrls,
-            timestamp: serverTimestamp()
+                setTimeout(() => {
+                    navigate("/sign-in")
+                }, 1000 * 30);
         }
 
-        delete formDataCopy.images
-        !formDataCopy.offer && delete formDataCopy.discountedPrice
-
-        const docRef = await addDoc(collection(db, "listings"), formDataCopy)
-        setLoading(false)
-        toast.success("Listing saved")
-        navigate(`/category/${formDataCopy.type}/${docRef.id}`)
     }
 
     const onMutate = (e) => {
